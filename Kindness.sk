@@ -1,0 +1,94 @@
+# ============================================================
+#  HEAVENLY KINDNESS — Empath Passive + Merciful Grace Ability
+# ============================================================
+
+
+# ============================================================
+#  PASSIVE — EMPATH (FEEL THE DAMAGE YOU DEAL)
+# ============================================================
+
+on damage:
+    attacker is a player
+    victim is not attacker
+
+    # Check if attacker is holding Heavenly Kindness
+    if attacker's tool is nether star named "&d&lHeavenly Kindness" with lore "&dYour kindness is your strength" and "&dShow them not to take it for granted":
+        set {_kind} to true
+    else if attacker's off hand is nether star named "&d&lHeavenly Kindness" with lore "&dYour kindness is your strength" and "&dShow them not to take it for granted":
+        set {_kind} to true
+    else:
+        stop
+
+    # Track hit count
+    add 1 to {kindness.hits::%attacker%}
+
+    # Normal hits (1–4)
+    if {kindness.hits::%attacker%} < 5:
+        damage attacker by (damage * 0.5)
+
+    # 5th hit — Kindness repaid
+    else if {kindness.hits::%attacker%} = 5:
+        set damage to damage * 2
+        heal attacker by damage
+        set {kindness.hits::%attacker%} to 0
+        send action bar "&d&lKINDNESS &8» &fYour kindness is repaid!" to attacker
+
+
+
+# ============================================================
+#  RIGHT-CLICK ABILITY — MERCIFUL GRACE
+# ============================================================
+
+on right click:
+    if player's tool is nether star named "&d&lHeavenly Kindness" with lore "&dYour kindness is your strength" and "&dShow them not to take it for granted":
+        set {_kind} to true
+    else if player's off hand is nether star named "&d&lHeavenly Kindness" with lore "&dYour kindness is your strength" and "&dShow them not to take it for granted":
+        set {_kind} to true
+    else:
+        stop
+
+    if {kindness.abilityCD::%player%} is set:
+        if {kindness.abilityCD::%player%} > now:
+            set {_time} to difference between {kindness.abilityCD::%player%} and now
+            send action bar "&d⏳ Kindness: %{_time}% remaining..." to player
+            stop
+
+    set {kindness.abilityCD::%player%} to now + 30 seconds
+
+    apply resistance 1 to player for 4 seconds
+    apply regeneration 2 to player for 4 seconds
+
+    loop all players:
+        if loop-player is not player:
+            if distance between loop-player and player <= 6:
+                apply resistance 1 to loop-player for 4 seconds
+                apply regeneration 2 to loop-player for 4 seconds
+
+    send action bar "&d&lKINDNESS &8» &fYou share your gentle strength with others..." to player
+
+
+
+# ============================================================
+#  PREVENT PLACING THE VIRTUE
+# ============================================================
+
+on place:
+    if event-item is nether star named "&d&lHeavenly Kindness" with lore "&dYour kindness is your strength" and "&dShow them not to take it for granted":
+        cancel event
+        send "&d&lHeavenly Kindness &8» &fThis sacred virtue cannot be placed." to player
+
+
+
+# ============================================================
+#  COMMAND TO GIVE THE ITEM
+# ============================================================
+
+command /kindness [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 nether star named "&d&lHeavenly Kindness" with lore "&dYour kindness is your strength" and "&dShow them not to take it for granted"
+            send "&7You have given &dHeavenly Kindness &7to %{arg-1}%." to player
+            send "&dYour kindness is your strength..." to arg-1
+        else:
+            give player nether star named "&d&lHeavenly Kindness" with lore "&dYour kindness is your strength" and "&dShow them not to take it for granted"
+            send "&dYour kindness is your strength..." to player

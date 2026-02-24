@@ -1,0 +1,173 @@
+# ============================================================
+#  HEAVENLY PATIENCE — Still Waters + Moment of Clarity
+# ============================================================
+
+
+# ============================================================
+#  PASSIVE — STILL WATERS
+# ============================================================
+
+every 5 ticks:
+    loop all players:
+        set {_p} to loop-player
+
+        # Check if Patience is held in either hand (NAME ONLY — SAFE)
+        set {_hasPatience} to false
+        if {_p}'s tool is nether star named "&f&lHeavenly Patience":
+            set {_hasPatience} to true
+        else if {_p}'s off hand is nether star named "&f&lHeavenly Patience":
+            set {_hasPatience} to true
+
+        if {_hasPatience} is false:
+            delete {patience.still::%{_p}%}
+            delete {patience.timer::%{_p}%}
+            delete {patience.tick::%{_p}%}
+            stop
+
+        # Detect movement
+        set {_loc} to location of {_p}
+        set {_last} to {patience.lastloc::%{_p}%}
+
+        if {_last} is set:
+            if distance between {_loc} and {_last} > 0.1:
+                delete {patience.still::%{_p}%}
+                delete {patience.timer::%{_p}%}
+                delete {patience.tick::%{_p}%}
+                set {patience.lastloc::%{_p}%} to {_loc}
+                stop
+
+        set {patience.lastloc::%{_p}%} to {_loc}
+
+        # Track stillness time
+        add 1 to {patience.timer::%{_p}%}
+
+        # After 3 seconds (60 ticks), activate Still Waters
+        if {patience.timer::%{_p}%} >= 60:
+            set {patience.still::%{_p}%} to true
+
+            # Regeneration while still
+            apply regeneration 1 to {_p} for 2 seconds
+
+            # Random positive effect every 4 seconds (20% chance)
+            add 1 to {patience.tick::%{_p}%}
+            if {patience.tick::%{_p}%} >= 16:
+                set {patience.tick::%{_p}%} to 0
+
+                if random integer between 1 and 100 <= 20:
+                    delete {_effects::*}
+                    add speed 1 to {_effects::*}
+                    add resistance 1 to {_effects::*}
+                    add regeneration 1 to {_effects::*}
+                    add fire resistance to {_effects::*}
+                    add water breathing to {_effects::*}
+                    add night vision to {_effects::*}
+                    add absorption 1 to {_effects::*}
+
+                    set {_chosen} to random element out of {_effects::*}
+                    apply {_chosen} to {_p} for 5 seconds
+
+                    send action bar "&f&lPatience &8» &fA blessing finds you..." to {_p}
+
+
+
+# ============================================================
+#  PASSIVE DAMAGE REDUCTION WHILE STILL
+# ============================================================
+
+on damage:
+    victim is a player
+
+    if {patience.still::%victim%} is set:
+        set {_before} to damage
+        set damage to damage * 0.80
+        set {_blocked} to {_before} - damage
+        send action bar "&f&lPatience &8» &fBlocked &a%{_blocked}% &fdamage" to victim
+
+
+
+# ============================================================
+#  DRAWBACK — IMPATIENCE
+# ============================================================
+
+on sprint toggle:
+    if player is sprinting:
+        set {patience.impatient::%player%} to true
+        wait 2 seconds
+        delete {patience.impatient::%player%}
+
+on damage:
+    victim is a player
+    if {patience.impatient::%victim%} is set:
+        set {_before} to damage
+        set damage to damage * 1.10
+        set {_extra} to damage - {_before}
+        send action bar "&f&lPatience &8» &cImpatience +%{_extra}% damage" to victim
+
+
+
+# ============================================================
+#  ACTIVE — MOMENT OF CLARITY (30s cooldown)
+# ============================================================
+
+on right click:
+    # Check if Patience is held in either hand (NAME ONLY — SAFE)
+    set {_hasPatience} to false
+    if player's tool is nether star named "&f&lHeavenly Patience":
+        set {_hasPatience} to true
+    else if player's off hand is nether star named "&f&lHeavenly Patience":
+        set {_hasPatience} to true
+
+    if {_hasPatience} is false:
+        stop
+
+    # Cooldown check
+    if {patience.CD::%player%} is set:
+        if {patience.CD::%player%} > now:
+            set {_t} to difference between {patience.CD::%player%} and now
+            send action bar "&f⏳ Patience: %{_t}% remaining..." to player
+            stop
+
+    set {patience.CD::%player%} to now + 30 seconds
+
+    # Apply defensive stance
+    set {patience.clarity::%player%} to true
+    apply slowness 2 to player for 5 seconds
+    wait 5 seconds
+    delete {patience.clarity::%player%}
+
+    send action bar "&f&lPATIENCE &8» &fYou enter a &f&lMoment of Clarity&f!"
+
+on damage:
+    victim is a player
+    if {patience.clarity::%victim%} is set:
+        set {_before} to damage
+        set damage to damage * 0.70
+        set {_blocked} to {_before} - damage
+        send action bar "&f&lPatience &8» &fClarity blocked &a%{_blocked}% &fdamage" to victim
+
+
+
+# ============================================================
+#  PREVENT PLACING
+# ============================================================
+
+on place:
+    if event-item is nether star named "&f&lHeavenly Patience":
+        cancel event
+        send "&f&lHeavenly Patience &8» &7This sacred virtue cannot be placed." to player
+
+
+
+# ============================================================
+#  GIVE COMMAND
+# ============================================================
+
+command /patience [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 nether star named "&f&lHeavenly Patience" with lore "&fStrength comes to those who wait" and "&fBut haste invites suffering"
+            send "&7You have given &fHeavenly Patience &7to %{arg-1}%." to player
+        else:
+            give player nether star named "&f&lHeavenly Patience" with lore "&fStrength comes to those who wait" and "&fBut haste invites suffering"
+            send "&fStrength comes to those who wait..."
+

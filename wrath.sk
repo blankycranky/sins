@@ -1,0 +1,135 @@
+# ============================================================
+#  WRATHFUL MEDALLION — Passive Strength
+# ============================================================
+
+every 5 seconds:
+    loop all players:
+        set {_hasWrath} to false
+
+        if loop-player's tool is netherite ingot named "&c&lWrathful Medallion" with lore "&cAnger fuels your strength":
+            set {_hasWrath} to true
+        else if loop-player's off hand is netherite ingot named "&c&lWrathful Medallion" with lore "&cAnger fuels your strength":
+            set {_hasWrath} to true
+
+        if {_hasWrath} is true:
+            apply strength 1 to loop-player for 7 seconds
+
+
+
+# ============================================================
+#  SMALL DAMAGE DRAWBACK (+0.25 damage taken)
+# ============================================================
+
+on damage:
+    if victim is a player:
+
+        if victim's tool is netherite ingot named "&c&lWrathful Medallion" with lore "&cAnger fuels your strength":
+            add 0.25 to damage
+        else if victim's off hand is netherite ingot named "&c&lWrathful Medallion" with lore "&cAnger fuels your strength":
+            add 0.25 to damage
+
+
+
+# ============================================================
+#  PASSIVE RAGE EXPLOSION — After 5 Hearts Damage
+# ============================================================
+
+on damage:
+    if victim is a player:
+
+        if victim's tool is netherite ingot named "&c&lWrathful Medallion" with lore "&cAnger fuels your strength":
+            set {_wrath} to true
+        else if victim's off hand is netherite ingot named "&c&lWrathful Medallion" with lore "&cAnger fuels your strength":
+            set {_wrath} to true
+        else:
+            stop
+
+        if {wrath.cooldown::%victim%} is set:
+            if {wrath.cooldown::%victim%} > now:
+                set {_time} to difference between {wrath.cooldown::%victim%} and now
+                send action bar "&4⏳ Wrath cooldown: %{_time}% remaining!" to victim
+                stop
+
+        add damage to {wrath.rage::%victim%}
+
+        send action bar "&4&lWRATH &8» &cRage: %{wrath.rage::%victim%}% / 10" to victim
+
+        if {wrath.rage::%victim%} < 10:
+            stop
+
+        delete {wrath.rage::%victim%}
+
+        set {wrath.cooldown::%victim%} to now + 5 seconds
+
+        play sound "block.beacon.activate" at victim
+
+        apply strength 2 to victim for 3 seconds
+        apply haste 2 to victim for 3 seconds
+
+        loop all entities in radius 10 around victim:
+            if loop-entity is not victim:
+                push loop-entity away from victim at speed 2
+                damage loop-entity by 4
+
+        send action bar "&4&lWRATH &8» &cYour rage explodes outward!" to victim
+
+
+
+# ============================================================
+#  RIGHT-CLICK EXPLOSION ABILITY (15s cooldown)
+# ============================================================
+
+on right click:
+    if player's tool is netherite ingot named "&c&lWrathful Medallion" with lore "&cAnger fuels your strength":
+        set {_wrath} to true
+    else if player's off hand is netherite ingot named "&c&lWrathful Medallion" with lore "&cAnger fuels your strength":
+        set {_wrath} to true
+    else:
+        stop
+
+    if {wrath.cooldown::%player%} is set:
+        if {wrath.cooldown::%player%} > now:
+            set {_time} to difference between {wrath.cooldown::%player%} and now
+            send action bar "&4⏳ Wrath cooldown: %{_time}% remaining!" to player
+            stop
+
+    set {wrath.cooldown::%player%} to now + 15 seconds
+
+    play sound "block.beacon.activate" at player
+
+    apply strength 2 to player for 3 seconds
+
+    loop all entities in radius 10 around player:
+        if loop-entity is not player:
+            push loop-entity away from player at speed 1
+            damage loop-entity by 4
+
+    send action bar "&4&lWRATH &8» &cYou unleash a violent explosion!" to player
+
+
+
+# ============================================================
+#  PREVENT PLACING THE MEDALLION
+# ============================================================
+
+on place:
+    if event-item is netherite ingot named "&c&lWrathful Medallion" with lore "&cAnger fuels your strength":
+        cancel event
+        send "&4Wrathful Medallion &8» &cThe medallion cannot be placed." to player
+
+
+
+# ============================================================
+#  COMMAND TO GIVE THE ITEM
+# ============================================================
+
+command /wrath [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 netherite ingot named "&c&lWrathful Medallion" with lore "&cAnger fuels your strength"
+            send "&7You have given &cWrathful Medallion &7to %{arg-1}%." to player
+            send "&cAnger fuels your strength..." to arg-1
+        else:
+            give player netherite ingot named "&c&lWrathful Medallion" with lore "&cAnger fuels your strength"
+            send "&cAnger fuels your strength..." to player
+

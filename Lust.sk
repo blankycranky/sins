@@ -1,0 +1,96 @@
+# ============================================================
+#  LUSTFUL CHAINS — Passive Charm Effects (Pink Theme)
+# ============================================================
+
+every 5 seconds:
+    loop all players:
+        set {_hasLust} to false
+
+        if loop-player's tool is chain item named "&d&lLustful Chains" with lore "&dEntraps fate into your charm":
+            set {_hasLust} to true
+        else if loop-player's off hand is chain item named "&d&lLustful Chains" with lore "&dEntraps fate into your charm":
+            set {_hasLust} to true
+
+        if {_hasLust} is true:
+            apply hero of the village 1 to loop-player for 7 seconds
+            apply health boost 1 to loop-player for 7 seconds
+            apply regeneration 1 to loop-player for 7 seconds
+            apply glowing to loop-player for 2 seconds
+
+
+
+# ============================================================
+#  EXTRA DAMAGE TAKEN (+0.25)
+# ============================================================
+
+on damage:
+    if victim is a player:
+
+        if victim's tool is chain item named "&d&lLustful Chains" with lore "&dEntraps fate into your charm":
+            add 0.25 to damage
+        else if victim's off hand is chain item named "&d&lLustful Chains" with lore "&dEntraps fate into your charm":
+            add 0.25 to damage
+
+
+
+# ============================================================
+#  RIGHT-CLICK ABILITY — Charm Burst (Pride-style Cooldown Bar)
+# ============================================================
+
+on right click:
+    if player's tool is chain item named "&d&lLustful Chains" with lore "&dEntraps fate into your charm":
+        set {_lustful} to true
+    else if player's off hand is chain item named "&d&lLustful Chains" with lore "&dEntraps fate into your charm":
+        set {_lustful} to true
+    else:
+        stop
+
+    if {lust.cooldown::%player%} is set:
+        if {lust.cooldown::%player%} > now:
+            set {_time} to difference between {lust.cooldown::%player%} and now
+            send action bar "&d⏳ Lustful Chains cooldown: %{_time}% remaining!" to player
+            stop
+
+    set {lust.cooldown::%player%} to now + 30 seconds
+
+    play sound "block.beacon.activate" at player
+
+    apply speed 2 to player for 4 seconds
+    apply glowing to player for 2 seconds
+
+    loop all entities in radius 10 around player:
+        if loop-entity is a zombie or skeleton or creeper or spider or enderman or witch or pillager or vindicator:
+            apply slowness 1 to loop-entity for 3 seconds
+            apply weakness 1 to loop-entity for 3 seconds
+            apply blindness 1 to loop-entity for 2 seconds
+
+    send action bar "&dLustful Chains &8» &d✨ Your charm bursts outward!" to player
+
+
+
+# ============================================================
+#  PREVENT PLACING THE LUSTFUL CHAINS
+# ============================================================
+
+on place:
+    if event-item is chain item named "&d&lLustful Chains" with lore "&dEntraps fate into your charm":
+        cancel event
+        send "&dLustful Chains &8» &5These enchanted chains cannot be placed." to player
+
+
+
+# ============================================================
+#  COMMAND TO GIVE THE ITEM
+# ============================================================
+
+command /lust [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 chain named "&d&lLustful Chains" with lore "&dEntraps fate into your charm"
+            send "&7You have given &dLustful Chains &7to %{arg-1}%." to player
+            send "&dEntraps fate into your charm..." to arg-1
+        else:
+            give player chain named "&d&lLustful Chains" with lore "&dEntraps fate into your charm"
+            send "&dEntraps fate into your charm..." to player
+
+

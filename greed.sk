@@ -1,0 +1,106 @@
+# ============================================================
+#  GREEDY MEDALLION — Valid Tool/Weapon Enchanting Only
+# ============================================================
+
+every 5 seconds:
+    loop all players:
+        set {_hasGreedy} to false
+
+        if loop-player's tool is emerald named "&a&lGreedy Medallion":
+            set {_hasGreedy} to true
+        else:
+            if loop-player's off hand is emerald named "&a&lGreedy Medallion":
+                set {_hasGreedy} to true
+
+        if {_hasGreedy} is true:
+            apply luck 2 to loop-player for 6 seconds
+
+
+on right click:
+    # ========================================================
+    #  OFF-HAND MEDALLION → FORTUNE MAIN HAND (TOOLS ONLY)
+    # ========================================================
+    if player's off hand is emerald named "&a&lGreedy Medallion":
+
+        # Valid Fortune tools
+        if player's tool is diamond pickaxe or iron pickaxe or stone pickaxe or wooden pickaxe or netherite pickaxe:
+            enchant player's tool with fortune 3
+            send "&aGreedy Medallion &8» &aYour greed empowers your pickaxe." to player
+
+        else if player's tool is diamond shovel or iron shovel or stone shovel or wooden shovel or netherite shovel:
+            enchant player's tool with fortune 3
+            send "&aGreedy Medallion &8» &aYour greed empowers your shovel." to player
+
+        else if player's tool is diamond axe or iron axe or stone axe or wooden axe or netherite axe:
+            enchant player's tool with fortune 3
+            send "&aGreedy Medallion &8» &aYour greed empowers your axe." to player
+
+        else if player's tool is diamond hoe or iron hoe or stone hoe or wooden hoe or netherite hoe:
+            enchant player's tool with fortune 3
+            send "&aGreedy Medallion &8» &aYour greed empowers your hoe." to player
+
+        else:
+            send "&aGreedy Medallion &8» &7That item cannot receive Fortune." to player
+            stop
+
+        if {greedy.reputation::%player%} is not set:
+            set {greedy.reputation::%player%} to true
+            send "&cYour reputation worsens..." to player
+
+        stop
+
+
+    # ========================================================
+    #  MAIN-HAND MEDALLION → LOOTING OFF HAND (WEAPONS ONLY)
+    # ========================================================
+    if player's tool is emerald named "&a&lGreedy Medallion":
+
+        # Valid Looting weapons
+        if player's off hand is diamond sword or iron sword or stone sword or wooden sword or netherite sword:
+            enchant player's off hand with looting 3
+            send "&aGreedy Medallion &8» &aYour greed corrupts your sword." to player
+
+        else if player's off hand is diamond axe or iron axe or stone axe or wooden axe or netherite axe:
+            enchant player's off hand with looting 3
+            send "&aGreedy Medallion &8» &aYour greed corrupts your axe." to player
+
+        else:
+            send "&aGreedy Medallion &8» &7That item cannot receive Looting." to player
+            stop
+
+        if {greedy.reputation::%player%} is not set:
+            set {greedy.reputation::%player%} to true
+            send "&cYour reputation worsens..." to player
+
+        stop
+
+
+
+# ============================================================
+#  COMMAND TO GIVE THE MEDALLION
+# ============================================================
+
+command /greed [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 emerald named "&a&lGreedy Medallion" with lore "&aYour greed's sickening but I love it"
+            send "&7You have given &aGreedy Medallion &7to %{arg-1}%." to player
+            send "&aYour greed's sickening but I love it..." to arg-1
+        else:
+            give player emerald named "&a&lGreedy Medallion" with lore "&aYour greed's sickening but I love it"
+            send "&aYour greed's sickening but I love it..." to player
+
+
+every 100 seconds:
+    loop all players:
+        set {_hasGreedy} to false
+
+        if loop-player's tool is emerald named "&a&lGreedy Medallion":
+            set {_hasGreedy} to true
+        else:
+            if loop-player's off hand is emerald named "&a&lGreedy Medallion":
+                set {_hasGreedy} to true
+
+        if {_hasGreedy} is true:
+            apply luck 2 to loop-player for 6 seconds
+            apply hunger 2 to loop-player for 6 seconds

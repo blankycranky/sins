@@ -1,0 +1,79 @@
+# ============================================================
+#  HEAVENLY DILIGENCE — WALK SPEED PASSIVE + STRENGTH ACTIVE
+# ============================================================
+
+every 5 ticks:
+    loop all players:
+
+        if loop-player's tool is nether star named "&f&lHeavenly Diligence" with lore "&fYour honest hard work helps you contend with the best":
+            set {_dil} to true
+        else if loop-player's off hand is nether star named "&f&lHeavenly Diligence" with lore "&fYour honest hard work helps you contend with the best":
+            set {_dil} to true
+        else:
+            set walk speed of loop-player to 0.2
+            stop
+
+        set {_hp} to health of loop-player
+        set {_max} to max health of loop-player
+
+        if {_hp} > {_max} / 2:
+            set walk speed of loop-player to 0.28
+        else:
+            set walk speed of loop-player to 0.24
+
+
+
+# ============================================================
+#  ACTIVE — STRENGTH II (6s) WITH 25s COOLDOWN
+# ============================================================
+
+on right click:
+    if player's tool is nether star named "&f&lHeavenly Diligence" with lore "&fYour honest hard work helps you contend with the best":
+        set {_dil} to true
+    else if player's off hand is nether star named "&f&lHeavenly Diligence" with lore "&fYour honest hard work helps you contend with the best":
+        set {_dil} to true
+    else:
+        stop
+
+    if {diligence.CD::%player%} is set:
+        if {diligence.CD::%player%} > now:
+            set {_t} to difference between {diligence.CD::%player%} and now
+            send action bar "&f⏳ Diligence: %{_t}% remaining..." to player
+            stop
+
+    set {diligence.CD::%player%} to now + 25 seconds
+
+    apply strength 2 to player for 6 seconds
+
+    send action bar "&e&lDILIGENCE &8» &fYour strength surges!" to player
+
+
+
+# ============================================================
+#  PREVENT PLACING THE VIRTUE
+# ============================================================
+
+on place:
+    if event-item is nether star named "&f&lHeavenly Diligence" with lore "&fYour honest hard work helps you contend with the best":
+        cancel event
+        send "&f&lHeavenly Diligence &8» &7This sacred virtue cannot be placed." to player
+
+
+
+# ============================================================
+#  COMMAND TO GIVE THE ITEM TO ANY PLAYER
+# ============================================================
+
+command /diligence [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 nether star named "&f&lHeavenly Diligence" with lore "&fYour honest hard work helps you contend with the best"
+            send "&7You have given &fHeavenly Diligence &7to %{arg-1}%." to player
+            send "&7A disciplined resolve fills your spirit..." to arg-1
+        else:
+            give player nether star named "&f&lHeavenly Diligence" with lore "&fYour honest hard work helps you contend with the best"
+            send "&7A disciplined resolve fills your spirit..." to player
+
+
+
+

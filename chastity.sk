@@ -1,0 +1,119 @@
+# ============================================================
+#  HEAVENLY CHASTITY — Sacred Guard + Vow of Aegis
+# ============================================================
+
+
+# ============================================================
+#  PASSIVE — SACRED GUARD
+# ============================================================
+
+on damage:
+    victim is a player
+
+    # Check if Chastity is held in either hand
+    set {_hasChastity} to false
+    if victim's tool is nether star named "&f&lHeavenly Chastity" with lore "&fYour purity shields you from harm" and "&fBut falters when your resolve breaks":
+        set {_hasChastity} to true
+    else if victim's off hand is nether star named "&f&lHeavenly Chastity" with lore "&fYour purity shields you from harm" and "&fBut falters when your resolve breaks":
+        set {_hasChastity} to true
+
+    if {_hasChastity} is false:
+        stop
+
+    set {_original} to damage
+
+    # Passive 1: 10% damage reduction above 75% HP
+    if victim's health > victim's max health * 0.75:
+        set damage to damage * 0.90
+        set {_blocked} to {_original} - damage
+        send action bar "&f&lChastity &8» &fBlocked &a%{_blocked}% &fdamage" to victim
+
+    # Passive 2: 20% projectile resistance
+    if attacker is a projectile:
+        set {_before} to damage
+        set damage to damage * 0.80
+        set {_blocked} to {_before} - damage
+        send action bar "&f&lChastity &8» &fBlocked &a%{_blocked}% &fprojectile damage" to victim
+
+    # Drawback: 10% more melee damage below 50% HP
+    if victim's health < victim's max health * 0.5:
+        if attacker is a living entity:
+            set {_before} to damage
+            set damage to damage * 1.10
+            set {_extra} to damage - {_before}
+            send action bar "&f&lChastity &8» &cVulnerability +%{_extra}% damage" to victim
+
+
+
+# ============================================================
+#  ACTIVE — VOW OF AEGIS (25s cooldown)
+# ============================================================
+
+on right click:
+    # Check if Chastity is held in either hand
+    set {_hasChastity} to false
+    if player's tool is nether star named "&f&lHeavenly Chastity" with lore "&fYour purity shields you from harm" and "&fBut falters when your resolve breaks":
+        set {_hasChastity} to true
+    else if player's off hand is nether star named "&f&lHeavenly Chastity" with lore "&fYour purity shields you from harm" and "&fBut falters when your resolve breaks":
+        set {_hasChastity} to true
+
+    if {_hasChastity} is false:
+        stop
+
+    # Cooldown check
+    if {chastity.CD::%player%} is set:
+        if {chastity.CD::%player%} > now:
+            set {_t} to difference between {chastity.CD::%player%} and now
+            send action bar "&f⏳ Chastity: %{_t}% remaining..." to player
+            stop
+
+    # Apply cooldown
+    set {chastity.CD::%player%} to now + 25 seconds
+
+    # Apply Resistance I
+    apply resistance 1 to player for 4 seconds
+
+    # Knockback immunity flag
+    set {chastity.nokb::%player%} to true
+    wait 4 seconds
+    delete {chastity.nokb::%player%}
+
+    send action bar "&f&lCHASTITY &8» &fYou stand firm in your &f&lVow of Aegis&f!"
+
+
+
+# ============================================================
+#  VERSION-SAFE KNOCKBACK IMMUNITY
+# ============================================================
+
+on damage:
+    if {chastity.nokb::%victim%} is set:
+        wait 1 tick
+        set velocity of victim to vector(0, 0, 0)
+
+
+
+# ============================================================
+#  PREVENT PLACING
+# ============================================================
+
+on place:
+    if event-item is nether star named "&f&lHeavenly Chastity" with lore "&fYour purity shields you from harm" and "&fBut falters when your resolve breaks":
+        cancel event
+        send "&f&lHeavenly Chastity &8» &7This sacred virtue cannot be placed." to player
+
+
+
+# ============================================================
+#  GIVE COMMAND
+# ============================================================
+
+command /chastity [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 nether star named "&f&lHeavenly Chastity" with lore "&fYour purity shields you from harm" and "&fBut falters when your resolve breaks"
+            send "&7You have given &fHeavenly Chastity &7to %{arg-1}%." to player
+        else:
+            give player nether star named "&f&lHeavenly Chastity" with lore "&fYour purity shields you from harm" and "&fBut falters when your resolve breaks"
+            send "&fYour purity shields you from harm..."
+

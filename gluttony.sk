@@ -1,0 +1,48 @@
+   
+on right click:
+  
+    set {_item} to off hand item of player
+
+    # Check item type
+    {_item} is gold ingot
+
+    # Check custom name
+    name of {_item} is "&6Gluttonous Medallion"
+
+    # Check lore
+    lore of {_item} contains "&6A cursed charm that feeds on pain."
+    lore of {_item} contains "&6Absorbs damage... but hungers in return."
+
+    # Toggle ability
+    if {gluttony::%uuid of player%} is not set:
+        set {gluttony::%uuid of player%} to true
+        send "&a[Gluttony] &6Your medallion awakens. Damage absorption enabled." to player
+    else:
+        delete {gluttony::%uuid of player%}
+        send "&c[Gluttony] &6Your medallion dims. Ability disabled." to player
+
+on damage:
+    victim is a player
+    {gluttony::%uuid of victim%} is true
+
+    set {_dmg} to damage
+    set {_cost} to {_dmg} / 2
+    set {_cost} to ceil({_cost})
+
+    set {_food} to food level of victim
+
+    if {_food} > {_cost}:
+        cancel event
+        remove {_cost} from food level of victim
+        send "&6[Gluttony] &6Absorbed &e%{_dmg}% &7damage for &e%{_cost}% &7hunger." to victim
+    else:
+        send "&8[Gluttony] &6You are too hungry to absorb damage." to victim
+command /gluttony [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 gold ingot named "&6&lGluttonous Medallion" with lore "&6A cursed charm that feeds on pain." and "&6Absorbs damage... but hungers in return."
+            send "&7You have given &6Gluttonous Medallion &7to %{arg-1}%." to player
+            send "&6A cursed charm that feeds on pain..." to arg-1
+        else:
+            give player gold ingot named "&6&lGluttonous Medallion" with lore "&6A cursed charm that feeds on pain." and "&6Absorbs damage... but hungers in return."
+            send "&6A cursed charm that feeds on pain..." to player

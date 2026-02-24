@@ -1,0 +1,132 @@
+# ============================================================
+# PRIDEFUL MEDALLION — DASH, DAMAGE SCALING, SHIELD DISABLE
+# ============================================================
+
+# -------------------------
+# RIGHT-CLICK DASH ABILITY
+# -------------------------
+on right click:
+    # Only trigger if holding the Prideful Medallion in either hand
+    if player's tool is not amethyst shard named "&d&lPrideful Medallion":
+        if player's off hand is not amethyst shard named "&d&lPrideful Medallion":
+            stop
+
+    # Cooldown check
+    if {pride.cooldown::%player%} is set:
+        if {pride.cooldown::%player%} > now:
+            set {_time} to difference between {pride.cooldown::%player%} and now
+            send action bar "&d⏳ Pride Dash cooldown: %{_time}% remaining!" to player
+            stop
+
+    # Set cooldown (30 seconds)
+    set {pride.cooldown::%player%} to now + 30 seconds
+
+    # Sounds
+    play sound "entity.ender_dragon.flap" at player
+    play sound "block.beacon.activate" at player
+
+    # Dash logic
+    if player's off hand is amethyst shard named "&d&lPrideful Medallion":
+        push player forwards with force 1.5
+    else:
+        push player upwards with force 1.5
+
+    # Small delay before damage
+    wait 20 ticks
+
+    # Damage nearby entities with scaling + indicators
+    loop living entities in radius 3 around player:
+        if loop-entity is not player:
+
+            # Above half HP → stronger damage
+            if player's health is greater than 5:
+                set {_dmg} to 8
+                send action bar "&d✦ PRIDE'S POWER! (&f%{_dmg}%&d)" to player
+            else:
+                set {_dmg} to 6
+                send action bar "&5⚠ YOU'RE TOO WEAK (&f%{_dmg}%&5)" to player
+
+            damage loop-entity by {_dmg}
+
+    # Final feedback
+    send action bar "&5&lPRIDE &8» &d⚡ Pride Dash!" to player
+
+
+
+# -----------------------------------------
+# OUTGOING DAMAGE SCALING (basic attacks)
+# -----------------------------------------
+on damage:
+    if attacker is not a player:
+        stop
+
+    set {_p} to attacker
+
+    # Only works if holding the Prideful Medallion in either hand
+    if {_p}'s tool is not amethyst shard named "&d&lPrideful Medallion":
+        if {_p}'s off hand is not amethyst shard named "&d&lPrideful Medallion":
+            stop
+
+    # Above half HP → stronger damage
+    if {_p}'s health is greater than 5:
+        set {_dmg} to 8
+        send action bar "&d✦ PRIDE'S POWER! (&f%{_dmg}%&d)" to {_p}
+    else:
+        set {_dmg} to 6
+        send action bar "&5⚠ YOU'RE TOO WEAK (&f%{_dmg}%&5)" to {_p}
+
+    set damage to {_dmg}
+
+
+
+# ---------------------------------------------------------
+# INCOMING DAMAGE SCALING (take 1.5x damage in off-hand)
+# ---------------------------------------------------------
+on damage of player:
+    set {_p} to victim
+
+    if {_p}'s off hand is amethyst shard named "&d&lPrideful Medallion":
+        set {_new} to damage * 1.5
+        set damage to {_new}
+        send action bar "&5⚠ You take extra damage while channeling pride! (&f%{_new}%&5)" to {_p}
+
+
+
+# ---------------------------------------------------------
+# DISABLE SHIELD USE WHEN MEDALLION IS HELD
+# ---------------------------------------------------------
+on right click:
+    set {_hasMed} to false
+
+    if player's tool is amethyst shard named "&d&lPrideful Medallion":
+        set {_hasMed} to true
+    if player's off hand is amethyst shard named "&d&lPrideful Medallion":
+        set {_hasMed} to true
+
+    if {_hasMed} is true:
+        if player's tool is minecraft:shield:
+            cancel event
+            send action bar "&5⚠ Your pride forbids the use of shields!" to player
+
+        if player's off hand is minecraft:shield:
+            cancel event
+            send action bar "&5⚠ Your pride forbids the use of shields!" to player
+
+
+
+# -------------------------
+# GIVE COMMAND
+# -------------------------
+command /pride [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 amethyst shard named "&d&lPrideful Medallion" with lore "&dYour pride overflows." and "&5Dash to prove you are the strongest."
+            send "&7You have given &dPrideful Medallion &7to %{arg-1}%." to player
+            send "&dYour pride overflows..." to arg-1
+        else:
+            give player amethyst shard named "&d&lPrideful Medallion" with lore "&dYour pride overflows." and "&5Dash to prove you are the strongest."
+            send "&dYour pride overflows..." to player
+
+
+
+

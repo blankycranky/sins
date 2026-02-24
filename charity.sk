@@ -1,0 +1,132 @@
+# ============================================================
+#  HEAVENLY CHARITY — Shared Blessing + Benevolent Chaos
+# ============================================================
+
+
+# ============================================================
+#  PASSIVE — SHARED BLESSING
+#  (Detect healing via health difference)
+# ============================================================
+
+every 5 ticks:
+    loop all players:
+        set {_healer} to loop-player
+
+        set {_hasCharity} to false
+
+        if {_healer}'s tool is nether star named "&f&lHeavenly Charity" with lore "&fYour generosity returns to you" and "&fIn chaotic ways":
+            set {_hasCharity} to true
+        else if {_healer}'s off hand is nether star named "&f&lHeavenly Charity" with lore "&fYour generosity returns to you" and "&fIn chaotic ways":
+            set {_hasCharity} to true
+
+        set {_current} to health of {_healer}
+        set {_last} to {charity.lasthealth::%{_healer}%}
+
+        if {_last} is not set:
+            set {charity.lasthealth::%{_healer}%} to {_current}
+            stop
+
+        # Detect healing
+        if {_current} > {_last}:
+            if {_hasCharity} is true:
+                set {_diff} to {_current} - {_last}
+                set {_amount} to {_diff} * 0.25
+
+                # NO LOOPS — get nearby players directly
+                set {_near::*} to all players where [distance between input and {_healer} <= 6]
+
+                # Remove the healer from the list
+                remove {_healer} from {_near::*}
+
+                # Heal everyone in the list at once
+                heal {_near::*} by {_amount}
+
+        set {charity.lasthealth::%{_healer}%} to {_current}
+
+
+
+# ============================================================
+#  DRAWBACK — FRAGILE BENEVOLENCE
+# ============================================================
+
+on damage:
+    victim is a player
+
+    if victim's tool is nether star named "&f&lHeavenly Charity" with lore "&fYour generosity returns to you" and "&fIn chaotic ways":
+        set {_char} to true
+    else if victim's off hand is nether star named "&f&lHeavenly Charity" with lore "&fYour generosity returns to you" and "&fIn chaotic ways":
+        set {_char} to true
+    else:
+        stop
+
+    if victim's health < victim's max health / 2:
+        set damage to damage * 1.10
+
+
+
+# ============================================================
+#  RIGHT-CLICK — BENEVOLENT CHAOS (30s cooldown)
+# ============================================================
+
+on right click:
+    if player's tool is nether star named "&f&lHeavenly Charity" with lore "&fYour generosity returns to you" and "&fIn chaotic ways":
+        set {_char} to true
+    else if player's off hand is nether star named "&f&lHeavenly Charity" with lore "&fYour generosity returns to you" and "&fIn chaotic ways":
+        set {_char} to true
+    else:
+        stop
+
+    if {charity.CD::%player%} is set:
+        if {charity.CD::%player%} > now:
+            set {_t} to difference between {charity.CD::%player%} and now
+            send action bar "&f⏳ Charity: %{_t}% remaining..." to player
+            stop
+
+    set {charity.CD::%player%} to now + 30 seconds
+
+    # Version-safe potion pool
+    delete {_potions::*}
+    add splash potion of healing to {_potions::*}
+    add splash potion of regeneration to {_potions::*}
+    add splash potion of speed to {_potions::*}
+    add splash potion of strength to {_potions::*}
+    add splash potion of fire resistance to {_potions::*}
+    add splash potion of harming to {_potions::*}
+    add splash potion of poison to {_potions::*}
+    add splash potion of slowness to {_potions::*}
+    add splash potion of weakness to {_potions::*}
+    add splash potion of water breathing to {_potions::*}
+
+    loop 3 times:
+        set {_potion} to random element out of {_potions::*}
+        give player {_potion}
+
+    send action bar "&f&lCHARITY &8» &fYou scatter gifts of &f&lBenevolent Chaos&f!" to player
+
+
+
+# ============================================================
+#  PREVENT PLACING
+# ============================================================
+
+on place:
+    if event-item is nether star named "&f&lHeavenly Charity" with lore "&fYour generosity returns to you" and "&fIn chaotic ways":
+        cancel event
+        send "&f&lHeavenly Charity &8» &7This sacred virtue cannot be placed." to player
+
+
+
+# ============================================================
+#  GIVE COMMAND
+# ============================================================
+
+command /charity [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 nether star named "&f&lHeavenly Charity" with lore "&fYour generosity returns to you" and "&fIn chaotic ways"
+            send "&7You have given &fHeavenly Charity &7to %{arg-1}%." to player
+        else:
+            give player nether star named "&f&lHeavenly Charity" with lore "&fYour generosity returns to you" and "&fIn chaotic ways"
+            send "&fYour generosity returns to you in chaotic ways..." to player
+
+

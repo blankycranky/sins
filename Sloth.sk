@@ -1,0 +1,81 @@
+# ============================================================
+#  SLOTHFUL MEDALLION — Passive Tankiness + No Sprinting
+# ============================================================
+
+every 5 seconds:
+    loop all players:
+        set {_hasSloth} to false
+
+        if loop-player's tool is quartz named "&7&lSlothful Medallion" with lore "&7Apathy weighs you down":
+            set {_hasSloth} to true
+        else if loop-player's off hand is quartz named "&7&lSlothful Medallion" with lore "&7Apathy weighs you down":
+            set {_hasSloth} to true
+
+        if {_hasSloth} is true:
+
+            apply health boost 2 to loop-player for 7 seconds
+
+            if {sloth.speedmode::%loop-player%} is not true:
+                apply slowness 2 to loop-player for 7 seconds
+
+
+
+# ============================================================
+#  RIGHT-CLICK SPEED BURST (10 seconds, 30s cooldown)
+# ============================================================
+
+on right click:
+    if player's tool is quartz named "&7&lSlothful Medallion" with lore "&7Apathy weighs you down":
+        set {_sloth} to true
+    else if player's off hand is quartz named "&7&lSlothful Medallion" with lore "&7Apathy weighs you down":
+        set {_sloth} to true
+    else:
+        stop
+
+    if {sloth.cooldown::%player%} is set:
+        if {sloth.cooldown::%player%} > now:
+            set {_time} to difference between {sloth.cooldown::%player%} and now
+            send action bar "&7⏳ Sloth cooldown: %{_time}% remaining..." to player
+            stop
+
+    set {sloth.cooldown::%player%} to now + 30 seconds
+
+    set {sloth.speedmode::%player%} to true
+
+    remove slowness from player
+    apply speed 2 to player for 10 seconds
+
+    send action bar "&7&lSLOTH &8» &7You reluctantly pick up the pace..." to player
+
+    wait 10 seconds
+    delete {sloth.speedmode::%player%}
+
+    apply slowness 2 to player for 7 seconds
+
+
+
+# ============================================================
+#  PREVENT PLACING THE MEDALLION
+# ============================================================
+
+on place:
+    if event-item is quartz named "&7&lSlothful Medallion" with lore "&7Apathy weighs you down":
+        cancel event
+        send "&7Slothful Medallion &8» &7The medallion refuses to be placed." to player
+
+
+
+# ============================================================
+#  COMMAND TO GIVE THE ITEM
+# ============================================================
+
+command /sloth [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 quartz named "&7&lSlothful Medallion" with lore "&7Apathy weighs you down"
+            send "&7You have given &7Slothful Medallion &7to %{arg-1}%." to player
+            send "&7Apathy weighs you down..." to arg-1
+        else:
+            give player quartz named "&7&lSlothful Medallion" with lore "&7Apathy weighs you down"
+            send "&7Apathy weighs you down..." to player
+

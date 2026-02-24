@@ -1,0 +1,124 @@
+# ============================================================
+#  HEAVENLY TEMPERANCE — Hunger Moderation + Inner Calm Ability
+# ============================================================
+
+
+# ============================================================
+#  COMBAT DETECTION (REAL, EXTENDED TO 8 SECONDS)
+# ============================================================
+
+on damage:
+    if attacker is a player:
+        set {combat::%attacker%} to now + 8 seconds
+    if victim is a player:
+        set {combat::%victim%} to now + 8 seconds
+
+
+
+# ============================================================
+#  PASSIVE HUNGER MODERATION (STARVATION FIXED)
+# ============================================================
+
+every 5 seconds:
+    loop all players:
+        set {_hasTemp} to false
+
+        # Check if player is holding Temperance
+        if loop-player's tool is nether star named "&f&lHeavenly Temperance" with lore "&fYour restraint brings balance to your body.":
+            set {_hasTemp} to true
+        else if loop-player's off hand is nether star named "&f&lHeavenly Temperance" with lore "&fYour restraint brings balance to your body.":
+            set {_hasTemp} to true
+
+        if {_hasTemp} is true:
+
+            # If Inner Calm is active, skip hunger logic
+            if {temp.innercalm::%loop-player%} is set:
+                if {temp.innercalm::%loop-player%} > now:
+                    stop
+
+            # Sprinting drains hunger faster
+            if loop-player is sprinting:
+                remove 1 from loop-player's hunger
+                stop
+
+            # Combat drains hunger MUCH faster
+            if {combat::%loop-player%} is set:
+                if {combat::%loop-player%} > now:
+
+                    remove 2 from loop-player's hunger
+
+                    # Starving warning (only once every 10 seconds)
+                    if loop-player's hunger <= 6:
+                        if {temp.starveWarn::%loop-player%} is not set:
+                            send "&f&lTEMPERANCE &8» &eYour restraint falters under battle... you begin to starve!" to loop-player
+                            set {temp.starveWarn::%loop-player%} to now + 10 seconds
+
+                    stop
+
+            # Normal activity drains slower
+            if loop-player's hunger < 20:
+                add 1 to loop-player's hunger
+
+            stop
+
+
+
+# ============================================================
+#  RIGHT-CLICK ABILITY — INNER CALM
+# ============================================================
+
+on right click:
+    # Check main hand
+    if player's tool is nether star named "&f&lHeavenly Temperance" with lore "&fYour restraint brings balance to your body.":
+        set {_temp} to true
+
+    # Check offhand
+    else if player's off hand is nether star named "&f&lHeavenly Temperance" with lore "&fYour restraint brings balance to your body.":
+        set {_temp} to true
+
+    else:
+        stop
+
+    # Cooldown check
+    if {temp.abilityCD::%player%} is set:
+        if {temp.abilityCD::%player%} > now:
+            set {_time} to difference between {temp.abilityCD::%player%} and now
+            send action bar "&f⏳ Temperance: %{_time}% remaining..." to player
+            stop
+
+    # Start cooldown (30 seconds)
+    set {temp.abilityCD::%player%} to now + 30 seconds
+
+    # Activate Inner Calm (10 seconds)
+    set {temp.innercalm::%player%} to now + 10 seconds
+
+    send action bar "&f&lTEMPERANCE &8» &eYour body enters a state of inner calm..."
+
+
+
+# ============================================================
+#  PREVENT PLACING THE VIRTUE
+# ============================================================
+
+on place:
+    if event-item is nether star named "&f&lHeavenly Temperance" with lore "&fYour restraint brings balance to your body.":
+        cancel event
+        send "&f&lHeavenly Temperance &8» &eThis sacred virtue cannot be placed." to player
+
+
+
+# ============================================================
+#  COMMAND TO GIVE THE ITEM
+# ============================================================
+
+command /temperance [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 nether star named "&f&lHeavenly Temperance" with lore "&fYour restraint brings balance to your body."
+            send "&7You have given &fHeavenly Temperance &7to %{arg-1}%." to player
+            send "&fYour restraint brings balance to your body..." to arg-1
+        else:
+            give player nether star named "&f&lHeavenly Temperance" with lore "&fYour restraint brings balance to your body."
+            send "&fYour restraint brings balance to your body..." to player
+
+

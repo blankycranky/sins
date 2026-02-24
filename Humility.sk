@@ -1,0 +1,119 @@
+# ============================================================
+#  HEAVENLY HUMILITY — Enduring Spirit + Humble Fortitude
+# ============================================================
+
+
+# ============================================================
+#  PASSIVE — ENDURING SPIRIT
+# ============================================================
+
+on damage:
+    victim is a player
+
+    if victim's tool is nether star named "&f&lHeavenly Humility" with lore "&fYour strength grows as you endure":
+        set {_hum} to true
+    else if victim's off hand is nether star named "&f&lHeavenly Humility" with lore "&fYour strength grows as you endure":
+        set {_hum} to true
+    else:
+        stop
+
+    add 1 to {humility.stacks::%victim%}
+    if {humility.stacks::%victim%} > 10:
+        set {humility.stacks::%victim%} to 10
+
+    set {humility.timer::%victim%} to now + 10 seconds
+
+    set {_stacks} to {humility.stacks::%victim%}
+    set {_bonus} to {_stacks} * 3
+
+    send action bar "&f&lHUMILITY &8» &7Endurance strengthens you &f+%{_bonus}% damage bonus" to victim
+
+
+
+# ============================================================
+#  DAMAGE BOOST FROM STACKS
+# ============================================================
+
+on damage:
+    attacker is a player
+    victim is not attacker
+
+    if attacker's tool is nether star named "&f&lHeavenly Humility" with lore "&fYour strength grows as you endure":
+        set {_hum} to true
+    else if attacker's off hand is nether star named "&f&lHeavenly Humility" with lore "&fYour strength grows as you endure":
+        set {_hum} to true
+    else:
+        stop
+
+    set {_stacks} to {humility.stacks::%attacker%}
+    if {_stacks} > 0:
+        set damage to damage * (1 + {_stacks} * 0.03)
+
+
+
+# ============================================================
+#  STACK DECAY SYSTEM
+# ============================================================
+
+every 2 seconds:
+    loop all players:
+        if {humility.timer::%loop-player%} is set:
+            if {humility.timer::%loop-player%} <= now:
+                delete {humility.stacks::%loop-player%}
+                delete {humility.timer::%loop-player%}
+                send action bar "&f&lHUMILITY &8» &7Your strength fades as your endurance settles." to loop-player
+
+
+
+# ============================================================
+#  RIGHT-CLICK ABILITY — HUMBLE FORTITUDE
+# ============================================================
+
+on right click:
+    if player's tool is nether star named "&f&lHeavenly Humility" with lore "&fYour strength grows as you endure":
+        set {_hum} to true
+    else if player's off hand is nether star named "&f&lHeavenly Humility" with lore "&fYour strength grows as you endure":
+        set {_hum} to true
+    else:
+        stop
+
+    if {humility.abilityCD::%player%} is set:
+        if {humility.abilityCD::%player%} > now:
+            set {_time} to difference between {humility.abilityCD::%player%} and now
+            send action bar "&f⏳ Humility: %{_time}% remaining..." to player
+            stop
+
+    set {humility.abilityCD::%player%} to now + 25 seconds
+
+    heal player by 8
+    apply resistance 1 to player for 4 seconds
+
+    send action bar "&f&lHUMILITY &8» &7You steel yourself through quiet endurance..." to player
+
+
+
+# ============================================================
+#  PREVENT PLACING THE VIRTUE
+# ============================================================
+
+on place:
+    if event-item is nether star named "&f&lHeavenly Humility" with lore "&fYour strength grows as you endure":
+        cancel event
+        send "&f&lHeavenly Humility &8» &7This sacred virtue cannot be placed." to player
+
+
+
+# ============================================================
+#  COMMAND TO GIVE THE ITEM
+# ============================================================
+
+command /humility [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 nether star named "&f&lHeavenly Humility" with lore "&fYour strength grows as you endure"
+            send "&7You have given &fHeavenly Humility &7to %{arg-1}%." to player
+            send "&fYour strength grows as you endure..." to arg-1
+        else:
+            give player nether star named "&f&lHeavenly Humility" with lore "&fYour strength grows as you endure"
+            send "&fYour strength grows as you endure..." to player
+

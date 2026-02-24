@@ -1,0 +1,97 @@
+# ============================================================
+#  ENVIOUS MEDALLION — Greedy Lifesteal + Jealous Focus Ability
+# ============================================================
+
+every 5 seconds:
+    loop all players:
+        set {_hasEnvy} to false
+
+        if loop-player's tool is diamond named "&b&lEnvious Medallion" with lore "&bYour cold jealousy steals what others have.":
+            set {_hasEnvy} to true
+        else if loop-player's off hand is diamond named "&b&lEnvious Medallion" with lore "&bYour cold jealousy steals what others have.":
+            set {_hasEnvy} to true
+
+        if {_hasEnvy} is true:
+            stop
+
+
+
+# ============================================================
+#  RIGHT-CLICK ABILITY — JEALOUS FOCUS
+# ============================================================
+
+on right click:
+    if player's tool is diamond named "&b&lEnvious Medallion" with lore "&bYour cold jealousy steals what others have.":
+        set {_envy} to true
+    else if player's off hand is diamond named "&b&lEnvious Medallion" with lore "&bYour cold jealousy steals what others have.":
+        set {_envy} to true
+    else:
+        stop
+
+    if {envy.abilityCD::%player%} is set:
+        if {envy.abilityCD::%player%} > now:
+            set {_time} to difference between {envy.abilityCD::%player%} and now
+            send action bar "&b⏳ Envy ability: %{_time}% remaining..." to player
+            stop
+
+    set {envy.abilityCD::%player%} to now + 30 seconds
+
+    apply absorption 1 to player for 8 seconds
+    apply haste 1 to player for 8 seconds
+
+    send action bar "&b&lENVY &8» &7Your jealousy sharpens your hunger..." to player
+
+
+
+# ============================================================
+#  DAMAGE MODIFIER + GREEDY LIFESTEAL (6s cooldown)
+# ============================================================
+
+on damage:
+    attacker is a player
+    victim is a living entity
+
+    if attacker's tool is diamond named "&b&lEnvious Medallion" with lore "&bYour cold jealousy steals what others have.":
+        set {_envy} to true
+    else if attacker's off hand is diamond named "&b&lEnvious Medallion" with lore "&bYour cold jealousy steals what others have.":
+        set {_envy} to true
+    else:
+        stop
+
+    set damage to damage * 0.75
+
+    if {envy.lifestealCD::%attacker%} is set:
+        if {envy.lifestealCD::%attacker%} > now:
+            stop
+
+    heal attacker by 1
+    send action bar "&b&lENVY &8» &7You greedily steal half a heart..." to attacker
+
+    set {envy.lifestealCD::%attacker%} to now + 6 seconds
+
+
+
+# ============================================================
+#  PREVENT PLACING THE MEDALLION
+# ============================================================
+
+on place:
+    if event-item is diamond named "&b&lEnvious Medallion" with lore "&bYour cold jealousy steals what others have.":
+        cancel event
+        send "&bEnvious Medallion &8» &7The medallion refuses to be placed." to player
+
+
+
+# ============================================================
+#  COMMAND TO GIVE THE ITEM
+# ============================================================
+
+command /envy [<player>]:
+    trigger:
+        if arg-1 is set:
+            give arg-1 diamond named "&b&lEnvious Medallion" with lore "&bYour cold jealousy steals what others have."
+            send "&7You have given &bEnvious Medallion &7to %{arg-1}%." to player
+            send "&bYour cold jealousy steals what others have..." to arg-1
+        else:
+            give player diamond named "&b&lEnvious Medallion" with lore "&bYour cold jealousy steals what others have."
+            send "&bYour cold jealousy steals what others have..." to player
